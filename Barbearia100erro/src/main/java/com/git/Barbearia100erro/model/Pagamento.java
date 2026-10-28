@@ -1,46 +1,32 @@
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
+package com.git.Barbearia100erro.model;
+
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "tb_pagamento")
-@Getter
-@Setter
-@NoArgsConstructor
+@Getter @Setter @NoArgsConstructor
 public class Pagamento {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "agendamento_id", nullable = false, unique = true)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @JoinColumn(name = "agendamento_id", nullable = false)
     private Agendamento agendamento;
-
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal valor;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private Metodo metodo = Metodo.CARTAO_SIMULADO;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private Status status = Status.APROVADO;
+    @Column(nullable = false)
+    private LocalDateTime dataPagamento = LocalDateTime.now();
 
-    @Column(name = "metodo_pagamento", nullable = false)
-    private String metodoPagamento; // "PIX", "CARTAO_CREDITO", "DINHEIRO_PRESENCIAL"
-
-    @Column(name = "status_pagamento", nullable = false)
-    private String statusPagamento; // "PENDENTE", "PAGO", "FALHOU"
-
-    @Column(name = "transacao_gateway_id")
-    private String transacaoGatewayId;
-
-    @Column(name = "pago_em")
-    private LocalDateTime pagoEm;
+    public enum Metodo { CARTAO_SIMULADO, PIX_SIMULADO, DINHEIRO }
+    public enum Status { APROVADO, ESTORNADO }
 }

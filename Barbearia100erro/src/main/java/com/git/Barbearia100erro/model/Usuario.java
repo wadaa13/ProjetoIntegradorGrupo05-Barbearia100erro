@@ -1,3 +1,5 @@
+package com.git.Barbearia100erro.model;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -33,15 +35,18 @@ public class Usuario {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(nullable = false, unique = true, length = 30)
+    private String telefone;
+
     @Column(nullable = false)
     @JsonIgnore
     private String senha;
 
-    @Column(nullable = false)
-    private String telefone;
-
     @Column(name = "data_nascimento")
     private LocalDate dataNascimento;
+
+    @Column(length = 1000)
+    private String preferenciaCorte;
 
     @Column(nullable = false)
     private String papel; // "CLIENTE", "ADMIN", etc.

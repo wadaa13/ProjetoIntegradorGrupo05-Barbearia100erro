@@ -1,4 +1,4 @@
-package com.barbearia.model;
+package com.git.Barbearia100erro.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
