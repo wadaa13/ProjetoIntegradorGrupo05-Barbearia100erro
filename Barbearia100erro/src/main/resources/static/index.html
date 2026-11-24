@@ -1,53 +1,223 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#11100f">
-  <meta name="description" content="Catálogo de serviços, promoções e agendamento online na Barbearia 100 Erro.">
-  <title>Barbearia 100 Erro — Agende online</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800;9..144,900&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css">
-  <script type="module" src="/js/app.js"></script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101010"><meta name="description" content="Corte, barba e planos mensais. Agende online na Barbearia 100 Erro.">
+  <title>Barbearia 100 Erro · Agende seu horário</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,600,100,1;9..144,700,100,1;9..144,800,100,1;9..144,900,100,1&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css"><script type="module" src="./js/app.js"></script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="nav-wrap">
-      <a class="brand" href="/"><span class="brand-mark">100</span><span>Barbearia <b>100 Erro</b></span></a>
-      <nav><a class="active" href="/">Agendar</a><a href="/cliente">Minha conta</a><a href="/admin">Gestor</a></nav>
-    </div>
-  </header>
+  <header class="topbar"><div class="nav-wrap"><a class="brand" href="/" aria-label="Barbearia 100 Erro, início"><img src="./logo.jpg" alt=""><span>100 Erro</span></a><nav aria-label="Navegação principal"><a class="active" href="/">Agendar</a><a href="/cliente">Minha área</a></nav></div></header>
   <main>
-    <section class="hero">
-        <div class="hero-shade"></div>
-        <div class="hero-content wrap">
-        <p class="eyebrow">Barbearia 100 Erro · Guarujá, SP</p>
-        <h1>Seu corte,<br><span>100 erro.</span></h1>
-        <p class="hero-copy">Escolha seu serviço, o dia e o horário. Sem fila, sem mensagem perdida no WhatsApp.</p>
-        <a class="button" href="#agendar">Agendar agora <span>→</span></a>
-        <div class="hours"><span>Seg–Sáb <b>10h–18h30</b></span><span>Dom <b>Fechado</b></span></div>
-      </div>
+    <section class="hero wrap">
+      <div class="hero-copy-block"><p class="eyebrow">Barbearia 100 Erro · Guarujá, SP</p><h1>Seu corte,<br><span>100 erro.</span></h1><p class="hero-copy">Escolha o serviço, o dia e o horário. Sem fila, sem mensagem perdida no WhatsApp.</p><a class="button" href="#agendar">Agendar agora <span aria-hidden="true">→</span></a></div>
+      <div class="hero-image-wrap"><img src="./logo.jpg" alt="Logo da Barbearia 100 Erro"></div>
     </section>
-    <section class="wrap promo-grid" id="promocoes"></section>
     <section class="wrap booking" id="agendar">
-      <div class="booking-main">
-        <section class="step-section"><div class="section-heading"><span class="step-number">01</span><div><p class="eyebrow">Comece por aqui</p><h2>Escolha o serviço</h2></div></div><div id="service-list" class="service-grid"></div></section>
-        <section class="step-section"><div class="section-heading"><span class="step-number">02</span><div><p class="eyebrow">Sua próxima visita</p><h2>Data e horário</h2></div></div><div id="date-list" class="date-list"></div><p id="slot-hint" class="muted">Selecione um dia para consultar os horários disponíveis.</p><div id="time-list" class="time-grid"></div></section>
-      </div>
-      <aside id="booking-aside" class="summary-card"><p class="eyebrow">Sua reserva</p><h3>Resumo</h3><dl><div><dt>Serviço</dt><dd id="summary-service">—</dd></div><div><dt>Data</dt><dd id="summary-date">—</dd></div><div><dt>Horário</dt><dd id="summary-time">—</dd></div><div><dt>Valor</dt><dd id="summary-price">—</dd></div></dl><button class="button button-wide" id="continue-booking" disabled>Continuar para pagamento <span>→</span></button><div class="checkout hidden" id="checkout"><div class="pay-choices"><button class="pay-choice selected" data-mode="sinal">Sinal 30%<b id="deposit-price"></b></button><button class="pay-choice" data-mode="total">Valor total<b id="total-price"></b></button></div><form id="booking-form" class="form-stack"><label>Seu nome<input name="nome" autocomplete="name" required placeholder="João Silva"></label><label>WhatsApp<input name="telefone" autocomplete="tel" required placeholder="(11) 99999-9999"></label><label>E-mail<input name="email" type="email" autocomplete="email" required placeholder="voce@email.com"></label><label>Documento<input name="documento" required placeholder="CPF"></label><button class="button button-wide" type="submit">Pagar e reservar <span>→</span></button></form><button class="text-button" id="back-booking">Voltar</button><p class="fine-print">Pagamento simulado · nenhuma cobrança real</p></div></aside>
+      <div class="section-heading"><span class="step-number">01</span><div><p class="eyebrow">Comece por aqui</p><h2>Escolha o serviço</h2></div></div>
+      <div id="service-list" class="service-grid"></div>
+      <div class="section-heading second-step"><span class="step-number">02</span><div><p class="eyebrow">Sua próxima visita</p><h2>Dia e horário</h2></div></div>
+      <div id="date-list" class="date-list" aria-label="Escolha uma data"></div><p id="slot-hint" class="muted">Selecione um dia para consultar os horários disponíveis.</p><div id="time-list" class="time-grid"></div>
+      <div class="section-heading second-step"><span class="step-number">03</span><div><p class="eyebrow">Quase lá</p><h2>Confirmação</h2></div></div>
+      <section id="booking-aside" class="summary-card" aria-live="polite"><p class="eyebrow">Sua reserva</p><h3>Resumo do agendamento</h3><dl><div><dt>Serviço</dt><dd id="summary-service">—</dd></div><div><dt>Data</dt><dd id="summary-date">—</dd></div><div><dt>Horário</dt><dd id="summary-time">—</dd></div><div><dt>Valor</dt><dd id="summary-price">—</dd></div></dl><button class="button" id="continue-booking" disabled>Continuar <span aria-hidden="true">→</span></button><div class="checkout hidden" id="checkout"><div class="pay-choices"><button class="pay-choice selected" type="button" data-mode="sinal">Sinal 30%<b id="deposit-price"></b></button><button class="pay-choice" type="button" data-mode="total">Valor total<b id="total-price"></b></button></div><form id="booking-form" class="form-stack"><label>Seu nome<input name="nome" autocomplete="name" required placeholder="Seu nome"></label><label>WhatsApp<input name="telefone" autocomplete="tel" required placeholder="(13) 99999-9999"></label><label>E-mail<input name="email" type="email" autocomplete="email" required placeholder="voce@email.com"></label><label>Documento <span class="optional">(opcional)</span><input name="documento" placeholder="CPF"></label><p class="account-hint">Já é cliente? <a href="/cliente">Entre na sua conta</a> para ver seu histórico.</p><button class="button button-wide" type="submit">Pagar e reservar <span aria-hidden="true">→</span></button></form><button class="text-button" id="back-booking" type="button">Voltar</button><p class="fine-print">Pagamento simulado · nenhuma cobrança real</p></div></section>
     </section>
-    <section class="wrap plans-section" id="planos">
-      <p class="eyebrow">Mais cuidado, todo mês</p><h2 class="section-title">Planos mensais</h2>
-      <div class="plans-grid" id="plan-list"></div>
-    </section>
-    <section class="wrap reviews-section" id="avaliacoes">
-      <div class="reviews-heading"><div><p class="eyebrow">Quem senta na cadeira recomenda</p><h2 class="section-title">Avaliações</h2><p class="muted" id="reviews-summary"></p></div><a class="button button-outline" href="https://maps.app.goo.gl/6kzqDmy3GBdxwZf67" target="_blank" rel="noreferrer">Ver e avaliar no Google ↗</a></div>
-      <div class="reviews-grid" id="review-list"></div>
-    </section>
+    <section class="wrap plans-section" id="planos"><p class="eyebrow">Mais cuidado, todo mês</p><h2 class="section-title">Planos mensais</h2><div class="plans-grid" id="plan-list"></div></section>
+      <section class="wrap reviews-section" id="avaliacoes" aria-labelledby="reviews-title">
+        <div class="reviews-heading">
+          <div>
+            <p class="eyebrow">Opiniões no Google</p>
+            <h2 class="section-title" id="reviews-title">Quem passa por aqui,<br><span class="reviews-title-accent">recomenda.</span></h2>
+            <p class="muted">Um pouco do carinho de quem já sentou na cadeira.</p>
+          </div>
+          <a class="button button-outline reviews-google-link" href="https://www.google.com/maps/place/Barbearia+100+Erro/@-23.9936001,-46.2809651,19.29z/data=!4m6!3m5!1s0x94ce012b1d82f999:0x6cf740da28e410e5!8m2!3d-23.9935101!4d-46.2800968!16s%2Fg%2F11wtkwg1_y" target="_blank" rel="noopener noreferrer">Ver no Google Maps <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="reviews-showcase" data-review-carousel>
+          <aside class="reviews-score" aria-label="Nota média no Google: 5 de 5, com 28 avaliações">
+            <span class="reviews-score-label">Nota no Google</span>
+            <div class="reviews-score-value">5.0 <span aria-hidden="true">/ 5</span></div>
+            <span class="stars reviews-score-stars" aria-label="5 de 5 estrelas">★★★★★</span>
+            <p>Com base em <strong>28 avaliações</strong></p>
+            <a class="reviews-source" href="https://www.google.com/maps/place/Barbearia+100+Erro/@-23.9936001,-46.2809651,19.29z/data=!4m6!3m5!1s0x94ce012b1d82f999:0x6cf740da28e410e5!8m2!3d-23.9935101!4d-46.2800968!16s%2Fg%2F11wtkwg1_y" target="_blank" rel="noopener noreferrer">Avaliações via Google Maps <span aria-hidden="true">↗</span></a>
+          </aside>
+          <div class="reviews-carousel" aria-label="Avaliações selecionadas" data-review-carousel-viewport>
+            <div class="review-track" id="review-list" role="list" aria-live="polite" aria-relevant="additions text">
+              <article class="review-card" role="listitem" data-review>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <div class="stars" aria-label="5 de 5 estrelas">★★★★★</div>
+                <blockquote>Sou de SP, cortei o cabelo lá porque era o local mais próximo de onde eu estava, e agora estou quase indo pra baixada toda quinzena só pra cortar o cabelo! Serviço bom demais! Fazia tempo que não acertavam tanto no corte, muito massa!</blockquote>
+                <figcaption class="review-author"><span>Vlope</span><span>uma semana atrás</span></figcaption>
+              </article>
+              <article class="review-card" role="listitem" data-review>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <div class="stars" aria-label="5 de 5 estrelas">★★★★★</div>
+                <blockquote>Cara excepcional cortando, de longe o melhor barbeiro que eu já vi cortar, super atencioso e gente boa, corta rápido e com qualidade, nota 10!</blockquote>
+                <figcaption class="review-author"><span>Vtt</span><span>um mês atrás</span></figcaption>
+              </article>
+              <article class="review-card" role="listitem" data-review hidden>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <div class="stars" aria-label="5 de 5 estrelas">★★★★★</div>
+                <blockquote>Nada menos que impecável, atendimento e qualidade acima do comum!</blockquote>
+                <figcaption class="review-author"><span>Fellype Marques</span><span>3 semanas atrás</span></figcaption>
+              </article>
+              <article class="review-card" role="listitem" data-review hidden>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <div class="stars" aria-label="5 de 5 estrelas">★★★★★</div>
+                <blockquote>Barbearia TOP! Excelente atendimento, super indico.</blockquote>
+                <figcaption class="review-author"><span>Evandro Maia</span><span>uma semana atrás</span></figcaption>
+              </article>
+              <article class="review-card" role="listitem" data-review hidden>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <div class="stars" aria-label="5 de 5 estrelas">★★★★★</div>
+                <blockquote>Barbearia top, corta e fofoca muito 👏</blockquote>
+                <figcaption class="review-author"><span>Leandro Melo</span><span>4 semanas atrás</span></figcaption>
+              </article>
+              <article class="review-card" role="listitem" data-review hidden>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <div class="stars" aria-label="5 de 5 estrelas">★★★★★</div>
+                <blockquote>Qualidade de quem entende sobre cabelo, o melhor!</blockquote>
+                <figcaption class="review-author"><span>kaua viera</span><span>um mês atrás</span></figcaption>
+              </article>
+              <article class="review-card" role="listitem" data-review hidden>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <div class="stars" aria-label="5 de 5 estrelas">★★★★★</div>
+                <blockquote>To há anos cortando com ele, o melhor do Guaru!</blockquote>
+                <figcaption class="review-author"><span>Miguel Andrade</span><span>6 meses atrás</span></figcaption>
+              </article>
+              <article class="review-card" role="listitem" data-review hidden>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <div class="stars" aria-label="5 de 5 estrelas">★★★★★</div>
+                <blockquote>Melhor barbeiro da cidade, ambiente confortável e resenha garantida.</blockquote>
+                <figcaption class="review-author"><span>Leonardo Luis</span><span>9 meses atrás</span></figcaption>
+              </article>
+              <article class="review-card" role="listitem" data-review hidden>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <div class="stars" aria-label="5 de 5 estrelas">★★★★★</div>
+                <blockquote>Melhor barbearia do Guarujá.</blockquote>
+                <figcaption class="review-author"><span>Roger Miyamoto</span><span>2 meses atrás</span></figcaption>
+              </article>
+              <article class="review-card" role="listitem" data-review hidden>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <div class="stars" aria-label="5 de 5 estrelas">★★★★★</div>
+                <blockquote>Corte top demais.</blockquote>
+                <figcaption class="review-author"><span>Diego Leandro</span><span>um mês atrás</span></figcaption>
+              </article>
+              <article class="review-card" role="listitem" data-review hidden>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <div class="stars" aria-label="5 de 5 estrelas">★★★★★</div>
+                <blockquote>Atendimento muito bom!! Local com climatização, recomendo!!</blockquote>
+                <figcaption class="review-author"><span>Bruno Assunção</span><span>9 meses atrás</span></figcaption>
+              </article>
+              <article class="review-card" role="listitem" data-review hidden>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <div class="stars" aria-label="5 de 5 estrelas">★★★★★</div>
+                <blockquote>Melhor da região.</blockquote>
+                <figcaption class="review-author"><span>Eduardo Neves</span><span>3 semanas atrás</span></figcaption>
+              </article>
+              <article class="review-card" role="listitem" data-review hidden>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <div class="stars" aria-label="5 de 5 estrelas">★★★★★</div>
+                <blockquote>Ambiente limpo, muito educado, serviço de qualidade.</blockquote>
+                <figcaption class="review-author"><span>Adriano Rosa</span><span>9 meses atrás</span></figcaption>
+              </article>
+              <article class="review-card" role="listitem" data-review hidden>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <div class="stars" aria-label="5 de 5 estrelas">★★★★★</div>
+                <blockquote>Atendimento muito bom.</blockquote>
+                <figcaption class="review-author"><span>Luiz Gustavo</span><span>um mês atrás</span></figcaption>
+              </article>
+              <article class="review-card" role="listitem" data-review hidden>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <div class="stars" aria-label="5 de 5 estrelas">★★★★★</div>
+                <blockquote>Excelente.</blockquote>
+                <figcaption class="review-author"><span>keka parça</span><span>um mês atrás</span></figcaption>
+              </article>
+              <article class="review-card" role="listitem" data-review hidden>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <div class="stars" aria-label="5 de 5 estrelas">★★★★★</div>
+                <blockquote>Excelente.</blockquote>
+                <figcaption class="review-author"><span>cleber the king</span><span>Editado 3 semanas atrás</span></figcaption>
+              </article>
+              <article class="review-card" role="listitem" data-review hidden>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <div class="stars" aria-label="5 de 5 estrelas">★★★★★</div>
+                <blockquote>Atendimento perfeitamente sublime.</blockquote>
+                <figcaption class="review-author"><span>Nickolas Mota</span><span>Editado 3 horas atrás</span></figcaption>
+              </article>
+              <article class="review-card" role="listitem" data-review hidden>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <div class="stars" aria-label="5 de 5 estrelas">★★★★★</div>
+                <blockquote>Não troco, qualidade top!</blockquote>
+                <figcaption class="review-author"><span>Danilo Morroni</span><span>Editado um mês atrás</span></figcaption>
+              </article>
+              <article class="review-card" role="listitem" data-review hidden>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <div class="stars" aria-label="5 de 5 estrelas">★★★★★</div>
+                <blockquote>Preço R$ 40–60.</blockquote>
+                <figcaption class="review-author"><span>Luís Henrique Monteiro Alves</span><span>Editado 2 semanas atrás</span></figcaption>
+              </article>
+              <article class="review-card" role="listitem" data-review hidden>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <div class="stars" aria-label="5 de 5 estrelas">★★★★★</div>
+                <blockquote>Excelente atendimento e serviço.</blockquote>
+                <figcaption class="review-author"><span>Dfideliz Preto</span><span>3 semanas atrás</span></figcaption>
+              </article>
+              <article class="review-card" role="listitem" data-review hidden>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <div class="stars" aria-label="5 de 5 estrelas">★★★★★</div>
+                <blockquote>Excelente atendimento.</blockquote>
+                <figcaption class="review-author"><span>Luiz Aguiar</span><span>um mês atrás</span></figcaption>
+              </article>
+              <article class="review-card" role="listitem" data-review hidden>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <div class="stars" aria-label="5 de 5 estrelas">★★★★★</div>
+                <blockquote class="review-empty-text">Avaliação com 5 estrelas, sem comentário escrito.</blockquote>
+                <figcaption class="review-author"><span>Malik Tchassi</span><span>sem texto</span></figcaption>
+              </article>
+              <article class="review-card" role="listitem" data-review hidden>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <div class="stars" aria-label="5 de 5 estrelas">★★★★★</div>
+                <blockquote class="review-empty-text">Avaliação com 5 estrelas, sem comentário escrito.</blockquote>
+                <figcaption class="review-author"><span>Matheus Honório</span><span>sem texto</span></figcaption>
+              </article>
+              <article class="review-card" role="listitem" data-review hidden>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <div class="stars" aria-label="5 de 5 estrelas">★★★★★</div>
+                <blockquote class="review-empty-text">Avaliação com 5 estrelas, sem comentário escrito.</blockquote>
+                <figcaption class="review-author"><span>Victor Correia</span><span>9 meses atrás · sem texto</span></figcaption>
+              </article>
+              <article class="review-card" role="listitem" data-review hidden>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <div class="stars" aria-label="5 de 5 estrelas">★★★★★</div>
+                <blockquote class="review-empty-text">Avaliação com 5 estrelas, sem comentário escrito.</blockquote>
+                <figcaption class="review-author"><span>Guilherme Batista</span><span>9 meses atrás · sem texto</span></figcaption>
+              </article>
+              <article class="review-card" role="listitem" data-review hidden>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <div class="stars" aria-label="5 de 5 estrelas">★★★★★</div>
+                <blockquote class="review-empty-text">Avaliação com 5 estrelas, sem comentário escrito.</blockquote>
+                <figcaption class="review-author"><span>Gabriel Xavier</span><span>9 meses atrás · sem texto</span></figcaption>
+              </article>
+              <article class="review-card" role="listitem" data-review hidden>
+                <span class="quote-mark" aria-hidden="true">“</span>
+                <div class="stars" aria-label="5 de 5 estrelas">★★★★★</div>
+                <blockquote class="review-empty-text">Avaliação com 5 estrelas, sem comentário escrito.</blockquote>
+                <figcaption class="review-author"><span>Kenedy Fernando</span><span>9 meses atrás · sem texto</span></figcaption>
+              </article>
+            </div>
+            <div class="review-carousel-controls" aria-label="Controles das avaliações">
+              <span class="review-position" id="review-position" aria-live="polite">Avaliações selecionadas</span>
+              <div class="review-control-buttons">
+                <button class="review-control" id="review-prev" type="button" aria-label="Avaliação anterior" aria-controls="review-list" data-carousel-prev disabled><span aria-hidden="true">←</span></button>
+                <button class="review-control" id="review-next" type="button" aria-label="Próxima avaliação" aria-controls="review-list" data-carousel-next disabled><span aria-hidden="true">→</span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
   </main>
-  <footer class="footer"><div class="wrap footer-details"><div><a class="brand" href="/"><span class="brand-mark">100</span><span>Barbearia <b>100 Erro</b></span></a><h2>Seu espaço. Seu estilo.</h2><p>Rua Luiz Felipe Machado<br>Vila Santa Rosa · Guarujá · SP · CEP 11431-130</p><p>Segunda a sábado · 10h às 18h30</p><a class="button button-outline" href="https://maps.app.goo.gl/6kzqDmy3GBdxwZf67" target="_blank" rel="noreferrer">Como chegar ↗</a></div><iframe class="footer-map" title="Mapa da Barbearia 100 Erro" src="https://www.google.com/maps?q=-23.9935101,-46.2800968&z=17&hl=pt-BR&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div><div class="footer-bottom">Barbearia 100 Erro · Seg a Sáb · 10h às 18h30</div></footer>
+  <footer class="footer"><div class="wrap footer-details"><div><a class="brand" href="/"><img src="./logo.jpg" alt=""><span>100 Erro</span></a><h2>Seu espaço. Seu estilo.</h2><p class="address">Rua Luiz Felipe Machado<br>Vila Santa Rosa · Guarujá · SP · CEP 11431-130</p><p>Terça e quarta · 11h às 19h<br>Quinta · 10h às 19h<br>Sexta · 9h às 20h<br>Sábado · 9h às 18h<br>Domingo e segunda · Fechado</p><a class="button button-outline" href="https://maps.app.goo.gl/6kzqDmy3GBdxwZf67" target="_blank" rel="noreferrer">Como chegar ↗</a></div><iframe class="footer-map" title="Mapa da Barbearia 100 Erro" src="https://www.google.com/maps?q=-23.9935101,-46.2800968&z=17&hl=pt-BR&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div><div class="footer-bottom">Barbearia 100 Erro · Ter–Qua 11h–19h · Qui 10h–19h · Sex 9h–20h · Sáb 9h–18h · Dom e Seg fechado</div></footer>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>

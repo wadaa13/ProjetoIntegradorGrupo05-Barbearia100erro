@@ -9,6 +9,7 @@ document.querySelectorAll("[data-auth]").forEach((button) => button.addEventList
   authMode = button.dataset.auth;
   document.querySelectorAll("[data-auth]").forEach((tab) => tab.classList.toggle("selected", tab === button));
   document.querySelector("#register-fields").classList.toggle("hidden", authMode !== "cadastro");
+  document.querySelectorAll("#register-fields input").forEach((input) => { input.required = authMode === "cadastro" && ["nome", "telefone", "documento"].includes(input.name); });
   document.querySelector("#auth-submit").textContent = authMode === "login" ? "Entrar" : "Criar minha conta";
   document.querySelector("#auth-form [name=senha]").autocomplete = authMode === "login" ? "current-password" : "new-password";
 }));

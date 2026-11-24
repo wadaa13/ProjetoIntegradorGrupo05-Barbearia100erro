@@ -3,8 +3,8 @@ import { api, dateKey, escapeHtml, formatDate, money, notify } from "./api.js";
 const adminLogin = document.querySelector("#admin-login");
 const adminPanel = document.querySelector("#admin-panel");
 const content = document.querySelector("#admin-content");
-const timeSlots = Array.from({ length: 13 }, (_, index) => { const minutes = 600 + index * 40; return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`; });
-const state = { user: JSON.parse(sessionStorage.getItem("barbearia-admin") || "null"), tab: "dashboard", date: dateKey(new Date()), services: [], appointments: [], promos: [], blocked: JSON.parse(localStorage.getItem("barbearia-bloqueios") || "[]"), moving: null };
+const timeSlots = Array.from({ length: 17 }, (_, index) => { const minutes = 9 * 60 + index * 40; return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`; });
+const state = { user: JSON.parse(sessionStorage.getItem("barbearia-admin") || "null"), tab: "dashboard", date: dateKey(new Date()), services: [], appointments: [], promos: [], blocked: JSON.parse(localStorage.getItem("barbearia-bloqueios") || "[]"), reviews: JSON.parse(localStorage.getItem("barbearia-avaliacoes") || "[]"), moving: null };
 
 document.querySelector("#admin-login-form").addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -55,7 +55,7 @@ function renderAgenda() {
   content.innerHTML = `<div class="agenda-layout"><article class="panel"><div class="agenda-toolbar"><button class="icon-button" id="previous-day">←</button><h3>${date.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })}</h3><button class="icon-button" id="next-day">→</button></div>${state.moving ? `<p class="birthday-note">Escolha um horário livre para remarcar <button class="text-button" id="cancel-moving">Cancelar</button></p>` : ""}<div>${timeSlots.map((time) => {
     const appointment = appointments.find((a) => String(a.horario).slice(0, 5) === time);
     if (appointment && state.moving === String(appointment.id)) return `<div class="slot-row"><span class="slot-time">${time}</span><div><div class="slot-client">${escapeHtml(appointment.cliente.nome)}</div><div class="slot-service">Selecione outro horário para remarcar</div></div><div class="slot-actions"><button class="small-button" data-cancel-moving>Manter horário</button></div></div>`;
-    if (appointment) return `<div class="slot-row"><span class="slot-time">${time}</span><div><div class="slot-client">${escapeHtml(appointment.cliente.nome)}</div><div class="slot-service">${escapeHtml(appointment.servico.nome)}</div></div><div class="slot-actions"><span class="status-pill ${appointment.status === "PENDENTE" ? "pending" : appointment.status === "WALK_IN" ? "walkin" : ""}">${appointment.status === "WALK_IN" ? "walk-in" : appointment.status.toLowerCase()}</span><button class="small-button" data-move="${appointment.id}">Remarcar</button><button class="small-button danger" data-cancel="${appointment.id}">Cancelar</button></div></div>`;
+    if (appointment) return `<div class="slot-row"><span class="slot-time">${time}</span><div><div class="slot-client">${escapeHtml(appointment.cliente.nome)}</div><div class="slot-service">${escapeHtml(appointment.servico.nome)}</div></div><div class="slot-actions"><span class="status-pill ${appointment.status === "PENDENTE" ? "pending" : appointment.status === "WALK_IN" ? "walkin" : ""}">${appointment.status === "WALK_IN" ? "walk-in" : appointment.status.toLowerCase()}</span>${appointment.status !== "CONCLUIDO" ? `<button class="small-button" data-complete="${appointment.id}">Concluir</button>` : ""}<button class="small-button" data-move="${appointment.id}">Remarcar</button><button class="small-button danger" data-cancel="${appointment.id}">Cancelar</button></div></div>`;
     if (blocked(time)) return `<div class="slot-row"><span class="slot-time">${time}</span><span class="muted">🔒 Bloqueado</span><div class="slot-actions"><button class="small-button" data-block="${time}">Liberar</button></div></div>`;
     if (state.moving) return `<div class="slot-row"><span class="slot-time">${time}</span><span class="muted">Livre</span><div class="slot-actions"><button class="small-button" data-reschedule="${time}">Mover para cá</button></div></div>`;
     return `<div class="slot-row"><span class="slot-time">${time}</span><span class="muted">Livre</span><div class="slot-actions"><button class="small-button" data-block="${time}">Bloquear</button><button class="small-button" data-walkin="${time}">+ Walk-in</button></div></div>`;
@@ -64,6 +64,7 @@ function renderAgenda() {
   document.querySelector("#next-day").addEventListener("click", () => shiftDate(1));
   document.querySelector("#cancel-moving")?.addEventListener("click", () => { state.moving = null; renderAgenda(); });
   content.querySelectorAll("[data-cancel]").forEach((button) => button.addEventListener("click", () => changeAppointment(button.dataset.cancel, { method: "DELETE" })));
+  content.querySelectorAll("[data-complete]").forEach((button) => button.addEventListener("click", () => changeAppointment(button.dataset.complete, { method: "PUT", body: JSON.stringify({ status: "CONCLUIDO" }) })));
   content.querySelectorAll("[data-move]").forEach((button) => button.addEventListener("click", () => { state.moving = button.dataset.move; renderAgenda(); }));
   content.querySelector("[data-cancel-moving]")?.addEventListener("click", () => { state.moving = null; renderAgenda(); });
   content.querySelectorAll("[data-block]").forEach((button) => button.addEventListener("click", () => toggleBlock(button.dataset.block)));
@@ -137,12 +138,25 @@ async function renderClients() {
     content.innerHTML = `<article class="panel"><p class="eyebrow">Relacionamento</p><h3>Clientes cadastrados</h3>${clients.length ? clients.map((client) => `<div class="client-row"><strong>${escapeHtml(client.nome)}</strong><span>${escapeHtml(client.telefone)}</span><small>${escapeHtml(client.email)} · ${client.dataNascimento ? `Aniversário ${formatDate(client.dataNascimento, { day: "2-digit", month: "long" })}` : "Sem aniversário cadastrado"}</small></div>`).join("") : `<p class="muted">Os clientes cadastrados aparecerão aqui.</p>`}</article>`;
   } catch (error) { notify(error.message, true); }
 }
+function renderReviews() {
+  const reviews = state.reviews;
+  content.innerHTML = `<article class="panel"><p class="eyebrow">Conteúdo local deste navegador</p><h3>Avaliações do site</h3><p class="muted">Não existe API de avaliações no backend. Estes depoimentos ficam apenas neste navegador.</p>${reviews.length ? reviews.map((r, i) => `<div class="promo-admin-row"><span><b>${escapeHtml(r.author)}</b> · ${"★".repeat(r.rating)}<br>${escapeHtml(r.text)}</span><button class="small-button danger" data-remove-review="${i}">Remover</button></div>`).join("") : `<p class="muted">Nenhuma avaliação publicada ainda.</p>`}<form class="form-stack" id="review-form"><label>Nome<input name="author" required></label><label>Avaliação<textarea name="text" required rows="3"></textarea></label><label>Nota<select name="rating"><option value="5">5 estrelas</option><option value="4">4 estrelas</option><option value="3">3 estrelas</option><option value="2">2 estrelas</option><option value="1">1 estrela</option></select></label><button class="button" type="submit">Publicar avaliação</button></form></article>`;
+  content.querySelector("#review-form").addEventListener("submit", (event) => {
+    event.preventDefault(); const review = Object.fromEntries(new FormData(event.currentTarget));
+    state.reviews.push({ author: review.author, text: review.text, rating: Number(review.rating) });
+    localStorage.setItem("barbearia-avaliacoes", JSON.stringify(state.reviews)); notify("Avaliação salva neste navegador."); renderReviews();
+  });
+  content.querySelectorAll("[data-remove-review]").forEach((button) => button.addEventListener("click", () => {
+    state.reviews.splice(Number(button.dataset.removeReview), 1); localStorage.setItem("barbearia-avaliacoes", JSON.stringify(state.reviews)); renderReviews();
+  }));
+}
 function renderTab() {
   document.querySelectorAll("[data-tab]").forEach((button) => button.classList.toggle("selected", button.dataset.tab === state.tab));
   if (state.tab === "dashboard") renderDashboard();
   if (state.tab === "agenda") renderAgenda();
   if (state.tab === "catalogo") renderCatalog();
   if (state.tab === "clientes") renderClients();
+  if (state.tab === "avaliacoes") renderReviews();
 }
 async function refresh() { await loadData(); if (state.tab === "dashboard") await loadDailyRevenue(); renderTab(); }
 

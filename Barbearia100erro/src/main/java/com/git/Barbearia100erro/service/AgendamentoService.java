@@ -21,30 +21,51 @@ import java.util.Map;
 
 @Service
 public class AgendamentoService {
-    private static final List<LocalTime> HORARIOS = java.util.stream.IntStream.range(0, 13)
-            .mapToObj(index -> LocalTime.of((600 + index * 40) / 60, (600 + index * 40) % 60)).toList();
+    private static final List<LocalTime> HORARIOS = java.util.stream.IntStream.range(0, 17)
+            .mapToObj(index -> LocalTime.of((9 * 60 + index * 40) / 60, (9 * 60 + index * 40) % 60)).toList();
     private final AgendamentoRepository agendamentos;
     private final UsuarioRepository usuarios;
     private final ServicoRepository servicos;
     private final PagamentoRepository pagamentos;
 
-    public AgendamentoService(AgendamentoRepository agendamentos, UsuarioRepository usuarios, ServicoRepository servicos, PagamentoRepository pagamentos) {
-        this.agendamentos = agendamentos; this.usuarios = usuarios; this.servicos = servicos; this.pagamentos = pagamentos;
+    public AgendamentoService(AgendamentoRepository agendamentos, UsuarioRepository usuarios,
+            ServicoRepository servicos, PagamentoRepository pagamentos) {
+        this.agendamentos = agendamentos;
+        this.usuarios = usuarios;
+        this.servicos = servicos;
+        this.pagamentos = pagamentos;
     }
 
-    public List<Agendamento> listar() { return agendamentos.findAllByOrderByDataAscHorarioAsc(); }
-    public List<Agendamento> listarPorData(LocalDate data) { return agendamentos.findByDataOrderByHorarioAsc(data); }
+    public List<Agendamento> listar() {
+        return agendamentos.findAllByOrderByDataAscHorarioAsc();
+    }
+
+    public List<Agendamento> listarPorData(LocalDate data) {
+        return agendamentos.findByDataOrderByHorarioAsc(data);
+    }
+
     public List<Agendamento> listarEntre(LocalDate inicio, LocalDate fim) {
-        if (fim.isBefore(inicio)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A data final precisa ser igual ou posterior à data inicial.");
+        if (fim.isBefore(inicio))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "A data final precisa ser igual ou posterior à data inicial.");
         return agendamentos.findByDataBetweenOrderByDataAscHorarioAsc(inicio, fim);
     }
-    public List<Agendamento> historico(Long clienteId) { return agendamentos.findByClienteIdOrderByDataDescHorarioDesc(clienteId); }
-    public long visitasConcluidas(Long clienteId) {
-        return historico(clienteId).stream().filter(a -> a.getStatus() == Agendamento.StatusAgendamento.CONCLUIDO).count();
+
+    public List<Agendamento> historico(Long clienteId) {
+        return agendamentos.findByClienteIdOrderByDataDescHorarioDesc(clienteId);
     }
+
+    public long visitasConcluidas(Long clienteId) {
+        return historico(clienteId).stream().filter(a -> a.getStatus() == Agendamento.StatusAgendamento.CONCLUIDO)
+                .count();
+    }
+
     public List<String> horariosDisponiveis(LocalDate data) {
-        validarDataHorario(data, HORARIOS.get(0));
-        return HORARIOS.stream().filter(h -> !agendamentos.existsByDataAndHorarioAndStatusNot(data, h, Agendamento.StatusAgendamento.CANCELADO)).map(LocalTime::toString).toList();
+        if (data.isBefore(LocalDate.now()))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não é possível agendar em uma data passada.");
+        return HORARIOS.stream().filter(horario -> horarioPermitido(data.getDayOfWeek(), horario)).filter(
+                h -> !agendamentos.existsByDataAndHorarioAndStatusNot(data, h, Agendamento.StatusAgendamento.CANCELADO))
+                .map(LocalTime::toString).toList();
     }
 
     @Transactional
@@ -52,44 +73,69 @@ public class AgendamentoService {
         LocalDate data = LocalDate.parse(obrigatorio(dados, "data"));
         LocalTime hora = LocalTime.parse(obrigatorio(dados, "horario"));
         validarDataHorario(data, hora);
-        if (!HORARIOS.contains(hora)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Horário fora dos horários de atendimento.");
+        if (!HORARIOS.contains(hora))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Horário fora dos horários de atendimento.");
         if (agendamentos.existsByDataAndHorarioAndStatusNot(data, hora, Agendamento.StatusAgendamento.CANCELADO))
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Este horário já está reservado.");
         Servico servico = servicos.findById(Long.valueOf(obrigatorio(dados, "servicoId"))).filter(Servico::isAtivo)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Serviço não encontrado."));
         Usuario cliente = null;
         if (dados.containsKey("clienteId") && !dados.get("clienteId").isBlank()) {
-            cliente = usuarios.findById(Long.valueOf(dados.get("clienteId"))).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado."));
+            cliente = usuarios.findById(Long.valueOf(dados.get("clienteId")))
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado."));
         } else {
-            String nome = obrigatorio(dados, "nome"), email = obrigatorio(dados, "email").toLowerCase(), telefone = obrigatorio(dados, "telefone");
+            String nome = obrigatorio(dados, "nome"), email = obrigatorio(dados, "email").toLowerCase(),
+                    telefone = obrigatorio(dados, "telefone");
             String documento = dados.getOrDefault("documento", "").trim();
             if (!usuarios.existsByEmail(email)) {
-                if (!documento.isBlank() && usuarios.existsByDocumento(documento)) throw new ResponseStatusException(HttpStatus.CONFLICT, "Já existe uma conta com este documento.");
-                if (usuarios.existsByTelefone(telefone)) throw new ResponseStatusException(HttpStatus.CONFLICT, "Já existe uma conta com este telefone.");
-                cliente = new Usuario(); cliente.setNome(nome); cliente.setEmail(email); cliente.setTelefone(telefone);
+                if (!documento.isBlank() && usuarios.existsByDocumento(documento))
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "Já existe uma conta com este documento.");
+                if (usuarios.existsByTelefone(telefone))
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "Já existe uma conta com este telefone.");
+                cliente = new Usuario();
+                cliente.setNome(nome);
+                cliente.setEmail(email);
+                cliente.setTelefone(telefone);
                 cliente.setDocumento(documento.isBlank() ? "WEB-" + java.util.UUID.randomUUID() : documento);
-                cliente.setSenha(java.util.UUID.randomUUID().toString()); cliente.setPapel("CLIENTE");
+                cliente.setSenha(java.util.UUID.randomUUID().toString());
+                cliente.setPapel("CLIENTE");
                 cliente = usuarios.save(cliente);
             } else {
                 cliente = usuarios.findByEmail(email).orElseThrow();
-                if (!cliente.getTelefone().equals(telefone)) throw new ResponseStatusException(HttpStatus.CONFLICT, "O telefone informado não corresponde a esta conta.");
+                if (!cliente.getTelefone().equals(telefone))
+                    throw new ResponseStatusException(HttpStatus.CONFLICT,
+                            "O telefone informado não corresponde a esta conta.");
             }
         }
         BigDecimal precoAgendamento = valorServico(servico, data);
         BigDecimal valorPago;
-        try { valorPago = new BigDecimal(dados.getOrDefault("valorPago", "0")); }
-        catch (NumberFormatException e) { throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Valor de pagamento inválido."); }
-        if ("walk-in".equalsIgnoreCase(dados.get("status")) && valorPago.signum() == 0) valorPago = precoAgendamento;
-        if (valorPago.signum() < 0 || valorPago.compareTo(precoAgendamento) > 0) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Valor de pagamento inválido.");
+        try {
+            valorPago = new BigDecimal(dados.getOrDefault("valorPago", "0"));
+        } catch (NumberFormatException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Valor de pagamento inválido.");
+        }
+        if ("walk-in".equalsIgnoreCase(dados.get("status")) && valorPago.signum() == 0)
+            valorPago = precoAgendamento;
+        if (valorPago.signum() < 0 || valorPago.compareTo(precoAgendamento) > 0)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Valor de pagamento inválido.");
         Agendamento agendamento = new Agendamento();
-        agendamento.setCliente(cliente); agendamento.setServico(servico); agendamento.setData(data); agendamento.setHorario(hora);
-        agendamento.setValor(precoAgendamento); agendamento.setValorPago(valorPago);
-        if (dados.containsKey("observacao")) agendamento.setObservacao(dados.get("observacao"));
-        agendamento.setStatus("walk-in".equalsIgnoreCase(dados.get("status")) ? Agendamento.StatusAgendamento.WALK_IN : Agendamento.StatusAgendamento.CONFIRMADO);
+        agendamento.setCliente(cliente);
+        agendamento.setServico(servico);
+        agendamento.setData(data);
+        agendamento.setHorario(hora);
+        agendamento.setValor(precoAgendamento);
+        agendamento.setValorPago(valorPago);
+        if (dados.containsKey("observacao"))
+            agendamento.setObservacao(dados.get("observacao"));
+        agendamento.setStatus("walk-in".equalsIgnoreCase(dados.get("status")) ? Agendamento.StatusAgendamento.WALK_IN
+                : Agendamento.StatusAgendamento.CONFIRMADO);
         Agendamento salvo = agendamentos.save(agendamento);
         if (valorPago.signum() > 0) {
-            Pagamento pagamento = new Pagamento(); pagamento.setAgendamento(salvo); pagamento.setValor(valorPago);
-            pagamento.setMetodo("dinheiro".equalsIgnoreCase(dados.get("metodoPagamento")) ? Pagamento.Metodo.DINHEIRO : Pagamento.Metodo.CARTAO_SIMULADO);
+            Pagamento pagamento = new Pagamento();
+            pagamento.setAgendamento(salvo);
+            pagamento.setValor(valorPago);
+            pagamento.setMetodo("dinheiro".equalsIgnoreCase(dados.get("metodoPagamento")) ? Pagamento.Metodo.DINHEIRO
+                    : Pagamento.Metodo.CARTAO_SIMULADO);
             pagamentos.save(pagamento);
         }
         return salvo;
@@ -98,15 +144,23 @@ public class AgendamentoService {
     @Transactional
     public Agendamento pagar(Long id, Map<String, String> dados) {
         Agendamento a = buscar(id);
-        if (a.getStatus() == Agendamento.StatusAgendamento.CANCELADO) throw new ResponseStatusException(HttpStatus.CONFLICT, "Agendamento cancelado não pode ser pago.");
+        if (a.getStatus() == Agendamento.StatusAgendamento.CANCELADO)
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Agendamento cancelado não pode ser pago.");
         BigDecimal valor;
-        try { valor = new BigDecimal(obrigatorio(dados, "valor")); }
-        catch (NumberFormatException e) { throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Valor de pagamento inválido."); }
+        try {
+            valor = new BigDecimal(obrigatorio(dados, "valor"));
+        } catch (NumberFormatException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Valor de pagamento inválido.");
+        }
         BigDecimal restante = a.getValor().subtract(a.getValorPago());
-        if (valor.signum() <= 0 || valor.compareTo(restante) > 0) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Valor de pagamento inválido.");
+        if (valor.signum() <= 0 || valor.compareTo(restante) > 0)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Valor de pagamento inválido.");
         a.setValorPago(a.getValorPago().add(valor));
-        Pagamento pagamento = new Pagamento(); pagamento.setAgendamento(a); pagamento.setValor(valor);
-        if ("pix".equalsIgnoreCase(dados.get("metodo"))) pagamento.setMetodo(Pagamento.Metodo.PIX_SIMULADO);
+        Pagamento pagamento = new Pagamento();
+        pagamento.setAgendamento(a);
+        pagamento.setValor(valor);
+        if ("pix".equalsIgnoreCase(dados.get("metodo")))
+            pagamento.setMetodo(Pagamento.Metodo.PIX_SIMULADO);
         pagamentos.save(pagamento);
         return agendamentos.save(a);
     }
@@ -114,20 +168,27 @@ public class AgendamentoService {
     @Transactional
     public Agendamento atualizar(Long id, Map<String, String> dados) {
         Agendamento a = buscar(id);
-        if (a.getStatus() == Agendamento.StatusAgendamento.CANCELADO) throw new ResponseStatusException(HttpStatus.CONFLICT, "Agendamento cancelado não pode ser alterado.");
+        if (a.getStatus() == Agendamento.StatusAgendamento.CANCELADO)
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Agendamento cancelado não pode ser alterado.");
         if (dados.containsKey("data") || dados.containsKey("horario")) {
             LocalDate data = dados.containsKey("data") ? LocalDate.parse(dados.get("data")) : a.getData();
             LocalTime hora = dados.containsKey("horario") ? LocalTime.parse(dados.get("horario")) : a.getHorario();
             validarDataHorario(data, hora);
-            if (agendamentos.existsByDataAndHorarioAndStatusNot(data, hora, Agendamento.StatusAgendamento.CANCELADO) && (!data.equals(a.getData()) || !hora.equals(a.getHorario())))
+            if (agendamentos.existsByDataAndHorarioAndStatusNot(data, hora, Agendamento.StatusAgendamento.CANCELADO)
+                    && (!data.equals(a.getData()) || !hora.equals(a.getHorario())))
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "Este horário já está reservado.");
-            a.setData(data); a.setHorario(hora);
+            a.setData(data);
+            a.setHorario(hora);
         }
         if (dados.containsKey("status")) {
-            try { a.setStatus(Agendamento.StatusAgendamento.valueOf(dados.get("status").toUpperCase().replace('-', '_'))); }
-            catch (IllegalArgumentException e) { throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status inválido."); }
+            try {
+                a.setStatus(Agendamento.StatusAgendamento.valueOf(dados.get("status").toUpperCase().replace('-', '_')));
+            } catch (IllegalArgumentException e) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status inválido.");
+            }
         }
-        if (dados.containsKey("observacao")) a.setObservacao(dados.get("observacao"));
+        if (dados.containsKey("observacao"))
+            a.setObservacao(dados.get("observacao"));
         return agendamentos.save(a);
     }
 
@@ -137,21 +198,51 @@ public class AgendamentoService {
         a.setStatus(Agendamento.StatusAgendamento.CANCELADO);
         agendamentos.save(a);
     }
-    public Agendamento buscar(Long id) { return agendamentos.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agendamento não encontrado.")); }
-    public BigDecimal faturamento(LocalDate inicio, LocalDate fim) { return agendamentos.valorServicosEntre(inicio, fim, Agendamento.StatusAgendamento.CANCELADO); }
-    public BigDecimal valorServico(Servico servico, LocalDate data) {
-        return servico.isPromocaoTerca() && data.getDayOfWeek() == DayOfWeek.TUESDAY && servico.getPrecoTerca() != null
-                ? servico.getPrecoTerca() : servico.getPreco();
+
+    public Agendamento buscar(Long id) {
+        return agendamentos.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agendamento não encontrado."));
     }
+
+    public BigDecimal faturamento(LocalDate inicio, LocalDate fim) {
+        return agendamentos.valorServicosEntre(inicio, fim, Agendamento.StatusAgendamento.CANCELADO);
+    }
+
+    public BigDecimal valorServico(Servico servico, LocalDate data) {
+
+        return servico.isPromocaoTerca() && data.getDayOfWeek() == DayOfWeek.TUESDAY && servico.getPrecoTerca() != null
+                ? servico.getPrecoTerca()
+                : servico.getPreco();
+    }
+
     private String obrigatorio(Map<String, String> dados, String chave) {
         String valor = dados.get(chave);
-        if (valor == null || valor.isBlank()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Campo obrigatório: " + chave);
+        if (valor == null || valor.isBlank())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Campo obrigatório: " + chave);
         return valor.trim();
     }
+
     private void validarDataHorario(LocalDate data, LocalTime horario) {
-        if (data.isBefore(LocalDate.now())) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não é possível agendar em uma data passada.");
+        if (data.isBefore(LocalDate.now()))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não é possível agendar em uma data passada.");
         DayOfWeek dia = data.getDayOfWeek();
-        if (dia == DayOfWeek.SUNDAY || horario.isBefore(LocalTime.of(10, 0)) || horario.plusMinutes(40).isAfter(LocalTime.of(18, 30)))
+        if (!horarioPermitido(dia, horario))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A barbearia está fechada neste horário.");
+    }
+
+    private boolean horarioPermitido(DayOfWeek dia, LocalTime horario) {
+        LocalTime abre = switch (dia) {
+            case TUESDAY, WEDNESDAY -> LocalTime.of(11, 0);
+            case THURSDAY -> LocalTime.of(10, 0);
+            case FRIDAY, SATURDAY -> LocalTime.of(9, 0);
+            default -> null;
+        };
+        LocalTime fecha = switch (dia) {
+            case TUESDAY, WEDNESDAY, THURSDAY -> LocalTime.of(19, 0);
+            case FRIDAY -> LocalTime.of(20, 0);
+            case SATURDAY -> LocalTime.of(18, 0);
+            default -> null;
+        };
+        return abre != null && !horario.isBefore(abre) && !horario.plusMinutes(40).isAfter(fecha);
     }
 }
